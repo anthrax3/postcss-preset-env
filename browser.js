@@ -4,6 +4,8 @@ const plugin = require('..');
 
 // parse <style> after running its contents through a PostCSS plugin
 const updateStyle = style => {
+	const isCpPenStyle = style.className === 'cp-pen-styles'
+
 	postcss([
 		plugin({
 			stage: 0
@@ -17,8 +19,18 @@ const updateStyle = style => {
 	).then(
 		result => {
 			style.textContent = result.css;
+
+			if (isCpPenStyle) {
+				cpPenStylesBackup = result.css;
+			}
 		},
-		console.error
+		error => {
+			if (isCpPenStyle && cpPenStylesBackup) {
+				style.textContent = cpPenStylesBackup;
+			}
+
+			console.error(error);
+		}
 	);
 };
 
@@ -46,3 +58,5 @@ if (styles.length) {
 		childList: true
 	}
 );
+
+let cpPenStylesBackup = ''
